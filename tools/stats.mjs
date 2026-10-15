@@ -13,5 +13,8 @@ for (const d of [...days, 'total']) { out[d] = {}; for (const e of EV) { if (++c
 if (json) console.log(JSON.stringify(out, null, 1));
 else {
   console.log(['dia', 'aberturas', 'jogadores', 'começaram', 'terminaram', 'compartilharam'].join('\t'));
-  for (const [d, v] of Object.entries(out)) console.log([d, v.pv, v.players, v.start, v.done, v.share].join('\t'));
+  for (const [d, v] of Object.entries(out)) console.log([d === 'total' ? 'total*' : d, v.pv, v.players, v.start, v.done, v.share].join('\t'));
+  const sum = k => Object.entries(out).filter(([d]) => d !== 'total' && d >= '20261016').reduce((a, [, v]) => a + (v[k] || 0), 0);
+  console.log(['lanç.→', sum('pv'), sum('players'), sum('start'), sum('done'), sum('share')].join('\t') + '   (soma dos dias mostrados a partir de 16/10)');
+  console.log('* total inclui os testes de 15/10 (prévia).');
 }
