@@ -7,6 +7,20 @@ const IG = 'https://www.instagram.com/oatlas.curioso/';
 const NEWS = 'https://statts-participaes-newsletter.beehiiv.com/subscribe';
 const KEY = 'atlasDiario:v1';
 const CLOSE_KM = 800;
+const LAUNCH = '2026-10-16'; // dia do lançamento público = Desafio #1 (antes disso: prévia #0)
+
+// ---------- contador anônimo (Abacus: sem cookies, sem identificador, só números somados) ----------
+const STAT_NS = 'weslopes-eng.atlas-diario';
+const STAT_ON = location.hostname === 'weslopes-eng.github.io' && !qs_has('nostat') && !localStorage.getItem('atlasDiario:nostat');
+function qs_has(k) { try { return new URLSearchParams(location.search).has(k); } catch { return false; } }
+function hit(ev, once) {
+  if (!STAT_ON) return;
+  try {
+    const d = brtDate().replace(/-/g, '');
+    if (once) { const f = 'atlasDiario:hit:' + ev; if (localStorage.getItem(f) === d) return; localStorage.setItem(f, d); }
+    for (const k of [ev + '-' + d, ev + '-total']) fetch(`https://abacus.jasoncameron.dev/hit/${STAT_NS}/${k}`, { keepalive: true, credentials: 'omit', referrerPolicy: 'no-referrer' }).catch(() => {});
+  } catch {}
+}
 
 const qs = new URLSearchParams(location.search);
 const LANG = (qs.get('lang') || localStorage.getItem('atlasDiario:lang') || 'pt') in I18N ? (qs.get('lang') || localStorage.getItem('atlasDiario:lang') || 'pt') : 'pt';
@@ -88,13 +102,14 @@ function computeStats() {
 }
 
 // ---------- telas ----------
+function chNum() { return Math.max(0, dayDiff(LAUNCH, today) + 1); }
 function header(n) {
-  return `<div class="day-pill">${T.challenge} <b>#${n}</b> · ${prettyDate(today)}</div>`;
+  return `<div class="day-pill">${n < 1 ? T.preview : T.challenge + ' <b>#' + n + '</b>'} · ${prettyDate(today)}</div>`;
 }
 function renderStart() {
   const g = state.games[today];
   if (g && g.done) return renderEnd();
-  const n = dayIdx + 1;
+  const n = chNum();
   const started = g && g.answers && g.answers.length;
   app.innerHTML = `
   <section class="screen start pop-in">
@@ -105,7 +120,7 @@ function renderStart() {
     <button class="btn btn-play" id="go">${started ? T.next + ' ▶' : T.play + ' ▶'}</button>
     <button class="link-btn" id="how2">${T.howTitle}</button>
   </section>`;
-  $('#go').onclick = () => startGame();
+  $('#go').onclick = () => { if (!started) hit('start'); startGame(); };
   $('#how2').onclick = showHow;
 }
 function heroFlags() {
@@ -116,7 +131,7 @@ function heroFlags() {
 }
 
 function startGame() {
-  if (!state.games[today]) state.games[today] = { n: dayIdx + 1, answers: [], start: Date.now() };
+  if (!state.games[today]) state.games[today] = { n: chNum(), answers: [], start: Date.now() };
   game = state.games[today];
   if (!game.start) game.start = Date.now();
   save();
@@ -314,6 +329,7 @@ function finish() {
   game.score = game.answers.filter(a => a === 2).length;
   game.time = game.time || Math.min(3600, Math.round((Date.now() - (game.start || Date.now())) / 1000));
   save();
+  hit('done'); hit('score' + game.score);
   renderEnd(true);
 }
 const emoji = a => a === 2 ? '🟩' : a === 1 ? '🟨' : '🟥';
@@ -321,7 +337,7 @@ function shareText() {
   const g = state.games[today]; const st = computeStats();
   const roundsIcons = CH.days[dayIdx].map(r => r.t === 'm' ? '📍' : '🌍');
   return [
-    fmt(T.shareText, { n: g.n, score: g.score }),
+    g.n < 1 ? fmt(T.shareText, { n: g.n, score: g.score }).replace('#0', T.previewShort) : fmt(T.shareText, { n: g.n, score: g.score }),
     g.answers.map(emoji).join(''),
     st.streak > 1 ? fmt(T.shareStreak, { s: st.streak }) : null,
     SITE,
@@ -359,9 +375,11 @@ function renderEnd(fresh) {
   $('#preview').textContent = text;
   $('#wa').href = 'https://wa.me/?text=' + encodeURIComponent(text);
   $('#xx').href = 'https://twitter.com/intent/tweet?text=' + encodeURIComponent(text);
-  $('#cp').onclick = () => copy(text);
+  $('#cp').onclick = () => { hit('share'); hit('share_copy'); copy(text); };
+  $('#wa').addEventListener('click', () => { hit('share'); hit('share_wa'); });
+  $('#xx').addEventListener('click', () => { hit('share'); hit('share_x'); });
   const sh = $('#sh');
-  if (navigator.share) sh.onclick = () => navigator.share({ text }).catch(() => {});
+  if (navigator.share) sh.onclick = () => { hit('share'); hit('share_native'); navigator.share({ text }).catch(() => {}); };
   else sh.remove();
   tick();
   if (fresh && s >= 4) confetti();
@@ -439,6 +457,8 @@ function boot() {
   dayIdx = idx % CH.days.length;
   state = load();
   game = state.games[today];
+  if (game && game.n !== chNum()) { game.n = chNum(); save(); }
+  hit('pv'); hit('players', true);
   if (game && !game.done && game.answers.length) { renderRound(); tick(); return; }
   renderStart();
   tick();

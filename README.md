@@ -16,4 +16,13 @@ node fetch_data.mjs && node fetch_fix.mjs   # baixa dados do Banco Mundial
 OUT=../data node build.mjs                   # gera data/*.json e 809 desafios (15/10/2026 a 31/12/2028)
 ```
 
-Sem login, sem anúncios, sem rastreadores. Histórico salvo só no aparelho (localStorage).
+## Numeração
+Os desafios são gerados a partir de 15/10/2026 (`START` em build.mjs), mas a numeração pública começa no lançamento: **16/10/2026 = Desafio #1** (`LAUNCH` em app.js). O dia 15/10 aparece como "Prévia".
+
+## Contador de jogadores
+Contador anônimo via [Abacus](https://abacus.jasoncameron.dev) (grátis, sem cadastro): sem cookies, sem identificador, sem IP guardado pelo site; só soma números por dia. Namespace `weslopes-eng.atlas-diario`, chaves `<evento>-AAAAMMDD` e `<evento>-total`:
+`pv` (aberturas), `players` (aparelhos únicos no dia), `start`, `done`, `score0..5`, `share` (+ `share_wa`, `share_x`, `share_copy`, `share_native`).
+Leitura: `node tools/stats.mjs [dias]` ou `https://abacus.jasoncameron.dev/get/weslopes-eng.atlas-diario/done-20261016`.
+Para não contar seus próprios testes: abra o site com `?nostat` ou rode `localStorage.setItem('atlasDiario:nostat','1')`.
+
+Sem login, sem anúncios, sem cookies. Histórico salvo só no aparelho (localStorage).

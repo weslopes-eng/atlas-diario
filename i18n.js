@@ -4,7 +4,7 @@ window.I18N = {
     locale: 'pt-BR',
     title: 'Atlas Diário',
     tagline: 'O desafio diário de países em 1 minuto',
-    challenge: 'Desafio',
+    challenge: 'Desafio', preview: '👀 <b>Prévia</b> (lançamento amanhã)', previewShort: '(prévia)',
     play: 'Jogar',
     played: 'Você já jogou hoje',
     seeResult: 'Ver meu resultado',
@@ -89,7 +89,7 @@ window.I18N = {
   },
   en: {
     locale: 'en-US',
-    title: 'Atlas Diário', tagline: 'The daily country challenge in 1 minute', challenge: 'Challenge', play: 'Play',
+    title: 'Atlas Diário', tagline: 'The daily country challenge in 1 minute', challenge: 'Challenge', preview: '👀 <b>Preview</b> (launches tomorrow)', previewShort: '(preview)', play: 'Play',
     played: 'You already played today', seeResult: 'See my result', rounds5: '5 rounds · ~1 minute · same for everyone',
     round: 'Round', next: 'Next', finish: 'See result', which: 'Which has more?', mapAsk: 'Tap the map: where is',
     mapHint: 'Drag to move · use + and − to zoom', tapCountry: 'Tap a country 🙂', correct: 'Correct!', wrong: 'Wrong!', close: 'Close!',
